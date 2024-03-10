@@ -234,7 +234,7 @@ class _DetailsScreenState extends State<DetailsScreen> {
                             ),
                             child: Row(
                               children: [
-                                Icon(
+                                const Icon(
                                   Icons.star,
                                   color: Colors.orange,
                                 ),

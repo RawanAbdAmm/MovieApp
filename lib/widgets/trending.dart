@@ -20,41 +20,53 @@ class TrendingMovies extends StatelessWidget {
 
     return SizedBox(
       width: double.infinity,
-      child: CarouselSlider.builder(
-        itemCount: snapshot!.length,
-        options: CarouselOptions(
-          height: 450,
-          autoPlay: true,
-          viewportFraction: 0.77,
-          enlargeCenterPage: true,
-          pageSnapping: true,
-          autoPlayCurve: Curves.fastOutSlowIn,
-          autoPlayAnimationDuration: const Duration(seconds: 1),
-        ),
-        itemBuilder: (context, itemIndex, pageViewIndex) {
-          return InkWell(
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (cxt) => DetailsScreen(
-                    movieDetails: snapshot![itemIndex],
+      child: OrientationBuilder(
+        builder: (context, orientation) {
+          final isLandscape = orientation == Orientation.landscape;
+          final double screenHeight = MediaQuery.of(context).size.height;
+          final double screenWidth = MediaQuery.of(context).size.width;
+          final double itemHeight =
+              isLandscape ? screenHeight : screenHeight * 0.6;
+          final double itemWidth =
+              isLandscape ? screenWidth * 0.4 : screenWidth * 0.77;
+
+          return CarouselSlider.builder(
+            itemCount: snapshot!.length,
+            options: CarouselOptions(
+              height: itemHeight,
+              aspectRatio: itemWidth / itemHeight,
+              autoPlay: true,
+              enlargeCenterPage: true,
+              pageSnapping: true,
+              autoPlayCurve: Curves.fastOutSlowIn,
+              autoPlayAnimationDuration: const Duration(seconds: 1),
+            ),
+            itemBuilder: (context, itemIndex, pageViewIndex) {
+              return InkWell(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (cxt) => DetailsScreen(
+                        movieDetails: snapshot![itemIndex],
+                      ),
+                    ),
+                  );
+                },
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: SizedBox(
+                    height: itemHeight,
+                    width: itemWidth,
+                    child: Image.network(
+                      '${Constants.imagePath}${snapshot![itemIndex].posterPath}',
+                      filterQuality: FilterQuality.high,
+                      fit: BoxFit.cover,
+                    ),
                   ),
                 ),
               );
             },
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: SizedBox(
-                height: 400,
-                width: 300,
-                child: Image.network(
-                  '${Constants.imagePath}${snapshot![itemIndex].posterPath}',
-                  filterQuality: FilterQuality.high,
-                  fit: BoxFit.cover,
-                ),
-              ),
-            ),
           );
         },
       ),

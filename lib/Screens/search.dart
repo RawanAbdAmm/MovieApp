@@ -140,7 +140,8 @@ class _SearchScreenState extends State<SearchMovie> {
                             ],
                           );
                         } else {
-                          return Center(child: CircularProgressIndicator());
+                          return const Center(
+                              child: CircularProgressIndicator());
                         }
                       },
                     )
