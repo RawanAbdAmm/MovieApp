@@ -147,4 +147,31 @@ class Api {
       print('Error adding rating: $e');
     }
   }
+
+  Future<void> deleteRatingFromMovie(int movieId) async {
+    final String apiUrl =
+        'https://api.themoviedb.org/3/movie/$movieId/rating'; // Use movieId parameter
+
+    final Uri uri = Uri.parse('$apiUrl?api_key=${Constants.apiKey}');
+
+    try {
+      final http.Response response = await http.delete(
+        uri,
+        headers: {
+          'Authorization':
+              'Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI3NTAyYjhjMDMxYzc5NzkwZmU1YzBiNGY5NGZkNzcwZCIsInN1YiI6IjYzMmMxYjAyYmE0ODAyMDA4MTcyNjM5NSIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.N1SoB26LWgsA33c-5X0DT5haVOD4CfWfRhwpDu9eGkc',
+          'Content-Type': 'application/json'
+        },
+      );
+
+      if (response.statusCode == 200) {
+        print('Rating deleted successfully!');
+      } else {
+        print('Failed to delete rating: ${response.statusCode}');
+        print(response.body);
+      }
+    } catch (e) {
+      print('Error deleting rating: $e');
+    }
+  }
 }

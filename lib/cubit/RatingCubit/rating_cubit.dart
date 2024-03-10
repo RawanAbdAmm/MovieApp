@@ -18,4 +18,16 @@ class RatingCubit extends Cubit<RatingState> {
       emit(RatingFailure("Failed to rate the movie: $e"));
     }
   }
+
+  void deleteRating(int movieId) async {
+    try {
+      emit(RatingLoading());
+
+      await apiService.deleteRatingFromMovie(movieId);
+
+      emit(RatingSuccess());
+    } catch (e) {
+      emit(RatingFailure("Failed to delete the rating: $e"));
+    }
+  }
 }

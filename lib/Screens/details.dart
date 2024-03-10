@@ -123,7 +123,25 @@ class _DetailsScreenState extends State<DetailsScreen> {
                                 child: const Text('Rate'),
                               ),
                               TextButton(
-                                onPressed: () {},
+                                onPressed: () async {
+                                  try {
+                                    await ratingCubit.apiService
+                                        .deleteRatingFromMovie(
+                                      widget.movieDetails.id,
+                                    );
+                                    setState(() {
+                                      widget.movieDetails.rating = 0;
+                                    });
+                                    Navigator.of(context).pop();
+                                  } catch (e) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content:
+                                            Text('Failed to delete rating'),
+                                      ),
+                                    );
+                                  }
+                                },
                                 child: const Text('Delete My rate'),
                               ),
                             ],
