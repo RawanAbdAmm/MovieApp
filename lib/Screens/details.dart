@@ -157,7 +157,7 @@ class _DetailsScreenState extends State<DetailsScreen> {
                   IconButton(
                     onPressed: () {
                       final isToggled = favoriteMoviesCubit
-                          .toggleMealFavoriteStatus(widget.movieDetails);
+                          .toggleMovieFavoriteStatus(widget.movieDetails);
                       final bool isFavorite = isToggled;
                     },
                     icon: Icon(

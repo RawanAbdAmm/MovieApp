@@ -99,6 +99,7 @@ class Api {
         'Authorization':
             'Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI3NTAyYjhjMDMxYzc5NzkwZmU1YzBiNGY5NGZkNzcwZCIsInN1YiI6IjYzMmMxYjAyYmE0ODAyMDA4MTcyNjM5NSIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.N1SoB26LWgsA33c-5X0DT5haVOD4CfWfRhwpDu9eGkc'
       });
+
       if (response.statusCode == 200) {
         final List<Movie> movies = [];
         final List<dynamic> results = jsonDecode(response.body)['results'];
@@ -109,17 +110,15 @@ class Api {
 
         return movies;
       } else {
-        throw Exception('Failed to load search movies');
+        return [];
       }
     } catch (e) {
-      throw Exception('Error: $e');
+      return [];
     }
   }
 
   Future<void> addRatingToMovie(int movieId, double rating) async {
-    final String apiUrl =
-        'https://api.themoviedb.org/3/movie/$movieId/rating'; // Use movieId parameter
-
+    final String apiUrl = 'https://api.themoviedb.org/3/movie/$movieId/rating';
     final Map<String, dynamic> requestBody = {
       'value': rating.toString(),
     };

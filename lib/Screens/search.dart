@@ -1,43 +1,21 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:movie_app/Screens/details.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:movie_app/cubit/MovieListCubit/moviescubit.dart';
+import 'package:movie_app/models/movielist.dart';
 import 'package:movie_app/constants.dart';
-import 'package:movie_app/helper/api.dart';
-import 'package:movie_app/models/movielist.dart'; // Import your Movie model
+import 'package:movie_app/Screens/details.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class SearchMovie extends StatefulWidget {
   const SearchMovie({Key? key}) : super(key: key);
 
   @override
-  State<SearchMovie> createState() => _SearchScreenState();
+  State<SearchMovie> createState() => _SearchMovieState();
 }
 
-class _SearchScreenState extends State<SearchMovie> {
-  Api apiServices = Api();
-  TextEditingController searchController = TextEditingController();
-  List<Movie>? searchedMovies;
-  late Future<List<Movie>> popularMovies;
-
-  void search(String query) {
-    apiServices.getSearchedMovie(query).then((results) {
-      setState(() {
-        searchedMovies = results;
-      });
-    });
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    popularMovies = apiServices.getTopRatedMovies();
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-    searchController.dispose();
-  }
+class _SearchMovieState extends State<SearchMovie> {
+  final TextEditingController searchController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -61,134 +39,76 @@ class _SearchScreenState extends State<SearchMovie> {
                 style: const TextStyle(color: Colors.white),
                 backgroundColor: Colors.grey.withOpacity(0.3),
                 onChanged: (value) {
-                  if (value.isEmpty) {
-                    setState(() {
-                      searchedMovies = null;
-                    });
+                  context.read<MovieCubit>().searchForMovie(searchValue: value);
+                },
+              ),
+              BlocBuilder<MovieCubit, MovieCubitState>(
+                builder: (context, state) {
+                  if (state is MovieCubitLoading) {
+                    return const Center(child: CircularProgressIndicator());
+                  } else if (state is MovieCubiSuccess) {
+                    final List<Movie>? searchResults = state.searchMovie;
+                    if (searchResults == null || searchResults.isEmpty) {
+                      return const Padding(
+                        padding: EdgeInsets.all(16.0),
+                        child: Text(
+                          'No movies found',
+                          style: TextStyle(fontSize: 16.0),
+                        ),
+                      );
+                    }
+                    return GridView.builder(
+                      padding: EdgeInsets.zero,
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: searchResults.length,
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        mainAxisSpacing: 9,
+                        crossAxisSpacing: 5,
+                        childAspectRatio: 1.9 / 2,
+                      ),
+                      itemBuilder: (context, index) {
+                        final movie = searchResults[index];
+                        if (movie == null) {
+                          return const SizedBox.shrink();
+                        }
+                        return Column(
+                          children: [
+                            InkWell(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => DetailsScreen(
+                                      movieDetails: movie,
+                                    ),
+                                  ),
+                                );
+                              },
+                              child: CachedNetworkImage(
+                                imageUrl:
+                                    '${Constants.imagePath}${movie.backDropPath}',
+                                height: 170,
+                              ),
+                            ),
+                            Text(
+                              movie.title,
+                              maxLines: 2,
+                              style: const TextStyle(fontSize: 14),
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                  } else if (state is MovieCubiFailure) {
+                    return Center(child: Text(state.errMessage));
                   } else {
-                    search(searchController.text);
+                    return const SizedBox.shrink();
                   }
                 },
               ),
-              searchController.text.isEmpty
-                  ? FutureBuilder<List<Movie>>(
-                      future: popularMovies,
-                      builder: (context, snapshot) {
-                        if (snapshot.hasData) {
-                          var data = snapshot.data!;
-                          return Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const SizedBox(height: 20),
-                              const Text(
-                                "Top Searches",
-                                style: TextStyle(fontWeight: FontWeight.bold),
-                              ),
-                              const SizedBox(height: 20),
-                              ListView.builder(
-                                shrinkWrap: true,
-                                physics: const NeverScrollableScrollPhysics(),
-                                itemCount: data.length,
-                                itemBuilder: (context, index) {
-                                  return Padding(
-                                    padding: const EdgeInsets.all(5.0),
-                                    child: InkWell(
-                                      onTap: () {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) => DetailsScreen(
-                                                movieDetails: data[index]),
-                                          ),
-                                        );
-                                      },
-                                      child: Container(
-                                        height: 120,
-                                        decoration: BoxDecoration(
-                                          borderRadius:
-                                              BorderRadius.circular(20),
-                                        ),
-                                        child: Row(
-                                          children: [
-                                            SizedBox(
-                                              width: 100,
-                                              child: CachedNetworkImage(
-                                                imageUrl:
-                                                    '${Constants.imagePath}${data[index].posterPath}',
-                                                fit: BoxFit.fitHeight,
-                                              ),
-                                            ),
-                                            const SizedBox(
-                                              width: 20,
-                                            ),
-                                            Expanded(
-                                              child: Text(
-                                                data[index].title,
-                                                maxLines: 2,
-                                                style: const TextStyle(
-                                                  fontSize: 14,
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                  );
-                                },
-                              ),
-                            ],
-                          );
-                        } else {
-                          return const Center(
-                              child: CircularProgressIndicator());
-                        }
-                      },
-                    )
-                  : searchedMovies == null
-                      ? const SizedBox.shrink()
-                      : GridView.builder(
-                          padding: EdgeInsets.zero,
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          itemCount: searchedMovies!.length,
-                          gridDelegate:
-                              const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 2,
-                            mainAxisSpacing: 9,
-                            crossAxisSpacing: 5,
-                            childAspectRatio: 1.9 / 2,
-                          ),
-                          itemBuilder: (context, index) {
-                            var movie = searchedMovies![index];
-                            return Column(
-                              children: [
-                                InkWell(
-                                  onTap: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) => DetailsScreen(
-                                          movieDetails: movie,
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                  child: CachedNetworkImage(
-                                    imageUrl:
-                                        '${Constants.imagePath}${movie.backDropPath}',
-                                    height: 170,
-                                  ),
-                                ),
-                                Text(
-                                  movie.title,
-                                  maxLines: 2,
-                                  style: const TextStyle(fontSize: 14),
-                                ),
-                              ],
-                            );
-                          },
-                        ),
             ],
           ),
         ),

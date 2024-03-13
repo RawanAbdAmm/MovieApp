@@ -4,7 +4,7 @@ import 'package:movie_app/models/movielist.dart';
 class FavoriteMovieCubit extends Cubit<List<Movie>> {
   FavoriteMovieCubit() : super([]);
 
-  bool toggleMealFavoriteStatus(Movie movie) {
+  bool toggleMovieFavoriteStatus(Movie movie) {
     final movieIsFavorite = state.contains(movie);
     if (movieIsFavorite) {
       emit(state.where((m) => m.id != movie.id).toList());
